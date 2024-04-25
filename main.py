@@ -1,11 +1,19 @@
 import requests
+import argparse
 
 
-def print_json():
+def find_teacher(teacher_name: str):
+
+    url = 'https://ruz.spbstu.ru/search/teacher?q=' + teacher_name
+    response = requests.get(url)
+    print(response.text)
+
+
+def print_json() -> None:
 
     # Делаем запрос
-    r = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/2423/scheduler')
-    data = r.json()
+    response = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/23471/scheduler')
+    data = response.json()
     # print(data)
 
     # Проверка четности недели
@@ -36,3 +44,4 @@ def print_json():
 
 
 print_json()
+# find_teacher('Огнев')
