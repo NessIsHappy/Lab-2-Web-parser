@@ -63,7 +63,7 @@ def get_timetable() -> dict[str, int]:
 
 def get_plot(dictionary) -> None:
 
-    weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
+    weekdays = ['Пон', 'Втор', 'Ср', 'Чет', 'Пят', 'Суб', 'Воскр']
     x = weekdays
     y = []
     for day in dictionary:
@@ -76,6 +76,15 @@ def get_plot(dictionary) -> None:
     plt.show()
 
 
-dictionary_for_plot = get_timetable()
-get_plot(dictionary_for_plot)
-#find_teacher('Огнев')
+def main():
+
+    parser = argparse.ArgumentParser(description='Вывод расписания преподавателя')
+    parser.add_argument('name', type=str, help='Имя преподавателя')
+    args = parser.parse_args()
+
+    dictionary_for_plot = get_timetable()
+    get_plot(dictionary_for_plot)
+
+
+if __name__ == '__main__':
+    main()
