@@ -22,7 +22,11 @@ def find_teacher(teacher_name: str) -> str:
     dictionary = json.loads(string)
 
     # Получаем id, нужен для работы get_timetable()
-    elem = dictionary['searchTeacher']['data'][0]
+    try:
+        elem = dictionary['searchTeacher']['data'][0]
+    except IndexError:
+        return 'Error'
+
     teacher_id = elem['id']
     return str(teacher_id)
 
@@ -32,7 +36,6 @@ def get_timetable(teacher_id: str) -> dict[str, int]:
     # Делаем запрос
     response = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/' + teacher_id + '/scheduler')
     data = response.json()
-    # print(data)
 
     # Проверка четности недели
     if data['week']['is_odd']:
@@ -98,9 +101,14 @@ def main():
     parser.add_argument('name', type=str, help='Имя преподавателя')
     args = parser.parse_args()
 
+    print(args.name)
+
     teacher_id = find_teacher(args.name)
-    dictionary_for_plot = get_timetable(teacher_id)
-    get_plot(dictionary_for_plot)
+    if teacher_id == 'Error':
+        return
+    else:
+        dictionary_for_plot = get_timetable(teacher_id)
+        get_plot(dictionary_for_plot)
 
 
 if __name__ == '__main__':
