@@ -6,6 +6,7 @@ import argparse
 
 def find_teacher(teacher_name: str) -> None:
 
+    # Пока ничего не делает
     url = 'https://ruz.spbstu.ru/search/teacher?q=' + teacher_name
     payload = {'first_name': teacher_name}
     r = requests.post(url, data=json.dumps(payload))
@@ -63,6 +64,7 @@ def get_timetable() -> dict[str, int]:
 
 def get_plot(dictionary) -> None:
 
+    # График: количество занятий/день недели
     weekdays = ['Пон', 'Втор', 'Ср', 'Чет', 'Пят', 'Суб', 'Воскр']
     x = weekdays
     y = []
