@@ -98,12 +98,11 @@ def get_plot(dictionary) -> None:
 def main():
 
     parser = argparse.ArgumentParser(description='Вывод расписания преподавателя')
-    parser.add_argument('name', type=str, help='Имя преподавателя')
+    parser.add_argument('teacher_name', type=str, help='Имя преподавателя')
     args = parser.parse_args()
+    print(args.teacher_name)
 
-    print(args.name)
-
-    teacher_id = find_teacher(args.name)
+    teacher_id = find_teacher(args.teacher_name)
     if teacher_id == 'Error':
         return
     else:
