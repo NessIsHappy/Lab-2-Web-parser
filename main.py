@@ -1,22 +1,36 @@
 import requests
 import json
 import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
 import argparse
 
 
-def find_teacher(teacher_name: str) -> None:
+def find_teacher(teacher_name: str) -> str:
 
-    # Пока ничего не делает
-    url = 'https://ruz.spbstu.ru/search/teacher?q=' + teacher_name
-    payload = {'first_name': teacher_name}
-    r = requests.post(url, data=json.dumps(payload))
-    print(r.headers)
+    # Получаем HTML по запросу и находим в нем часть со скриптом
+    url = requests.get('https://ruz.spbstu.ru/search/teacher?q=' + teacher_name)
+    soup = BeautifulSoup(url.text, 'html.parser')
+    data = soup.findAll('script')
+
+    # Находим window.__INITIAL_STATE__
+    string = data[3].text
+
+    # Извлекаем оттуда строку, которая будет словарем с нужной информацией
+    begin = string.find('faculties') - 2
+    end = len(string) - 3
+    string = string[begin:end]
+    dictionary = json.loads(string)
+
+    # Получаем id, нужен для работы get_timetable()
+    elem = dictionary['searchTeacher']['data'][0]
+    teacher_id = elem['id']
+    return str(teacher_id)
 
 
-def get_timetable() -> dict[str, int]:
+def get_timetable(teacher_id: str) -> dict[str, int]:
 
     # Делаем запрос
-    response = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/2423/scheduler')
+    response = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/' + teacher_id + '/scheduler')
     data = response.json()
     # print(data)
 
@@ -84,7 +98,8 @@ def main():
     parser.add_argument('name', type=str, help='Имя преподавателя')
     args = parser.parse_args()
 
-    dictionary_for_plot = get_timetable()
+    teacher_id = find_teacher(args.name)
+    dictionary_for_plot = get_timetable(teacher_id)
     get_plot(dictionary_for_plot)
 
 
