@@ -1,37 +1,22 @@
 import requests
 import json
 import matplotlib.pyplot as plt
-from bs4 import BeautifulSoup
+import re
 import argparse
 
 
-def find_teacher(teacher_name: str) -> str:
+def get_timetable(teacher_name: str) -> dict[str, int]:
 
-    # Получаем HTML по запросу и находим в нем часть со скриптом
-    url = requests.get('https://ruz.spbstu.ru/search/teacher?q=' + teacher_name)
-    soup = BeautifulSoup(url.text, 'html.parser')
-    data = soup.findAll('script')
+    url = 'https://ruz.spbstu.ru/api/v1/ruz/teachers'
+    response = requests.get(url)
+    data = response.json()
+    teacher_id = 'None'
+    for teacher in data['teachers']:
+        if teacher['full_name'] == teacher_name:
+            teacher_id = str(teacher['id'])
 
-    # Находим window.__INITIAL_STATE__
-    string = data[3].text
-
-    # Извлекаем оттуда строку, которая будет словарем с нужной информацией
-    begin = string.find('faculties') - 2
-    end = len(string) - 3
-    string = string[begin:end]
-    dictionary = json.loads(string)
-
-    # Получаем id, нужен для работы get_timetable()
-    try:
-        elem = dictionary['searchTeacher']['data'][0]
-    except IndexError:
-        return 'Error'
-
-    teacher_id = elem['id']
-    return str(teacher_id)
-
-
-def get_timetable(teacher_id: str) -> dict[str, int]:
+    if teacher_id == 'None':
+        print('Нет такого преподователя!')
 
     # Делаем запрос
     response = requests.get('https://ruz.spbstu.ru/api/v1/ruz/teachers/' + teacher_id + '/scheduler')
@@ -60,7 +45,7 @@ def get_timetable(teacher_id: str) -> dict[str, int]:
                    'Воскресенье': 0}
     i = 0
     cnt = 0
-
+    print(data)
     # Вывод дня, даты, дисциплины, времени (от и до), преподователя и аудитории
     for day in data['days']:
         print('-' * (len(weekdays[day['weekday']]) + len(day['date'])))
@@ -72,6 +57,10 @@ def get_timetable(teacher_id: str) -> dict[str, int]:
             print("Время: {0} - {1}".format(lesson['time_start'], lesson['time_end']))
             print("Преподаватель: {0}".format(lesson['teachers'][0]['full_name']))
             print("Аудитория: {0}".format(lesson['auditories'][0]['name']))
+            # print("Группы: ", end="")
+            # for groups in lesson['groups']:
+            #    print(groups['name'], end=", ")
+            # print('')
             cnt += 1
         lessons_cnt[weekdays[day['weekday']]] = cnt
         cnt = 0
@@ -102,12 +91,8 @@ def main():
     args = parser.parse_args()
     print(args.teacher_name)
 
-    teacher_id = find_teacher(args.teacher_name)
-    if teacher_id == 'Error':
-        return
-    else:
-        dictionary_for_plot = get_timetable(teacher_id)
-        get_plot(dictionary_for_plot)
+    dictionary_for_plot = get_timetable(args.teacher_name)
+    get_plot(dictionary_for_plot)
 
 
 if __name__ == '__main__':
